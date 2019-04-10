@@ -1,6 +1,12 @@
 library(forecast)
 library(timetk)
 library(urca)
+library(readxl)
+library(tidyverse)
+library(lubridate)
+
+dat <-
+  read_excel(path="2019 BA Case Competition Data.xlsx", sheet=3, na="NULL")
 
 daily_appts <-
   dat %>%
@@ -70,17 +76,19 @@ summary(daily_model4)
 
 checkresiduals(daily_model4)
 
+horizon_length <- 91
+
 daily_model4 %>%
-  forecast(h=28) %>%
+  forecast(h=horizon_length) %>%
   autoplot()
 
 fore_out <-
   daily_model4 %>%
-  forecast(h=28)
+  forecast(h=horizon_length)
 
 forecasted <-
   tibble(
-    appt_date = seq.Date(from = max(daily_appts$appt_date)+lubridate::days(1), by=1, length.out = 28),
+    appt_date = seq.Date(from = max(daily_appts$appt_date)+lubridate::days(1), by=1, length.out = horizon_length),
     n_appts = round(fore_out$mean),
     forecasted = T
   )
