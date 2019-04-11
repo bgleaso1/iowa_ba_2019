@@ -21,10 +21,18 @@ sample_table <-
 # UI --------------------------------------
 ui <- navbarPage(
   
+  useShinyjs(),
+  # HTML('<script>
+  #   $(document).ready(function() {
+  #     $("#donut").css("height","200px");
+  #   })          
+  # </script>'),
+  
   title = "UnityPoint Scheduler",
  
   tabPanel(
     title="Schedule",
+    id="ScheduleId",
     sidebarLayout(
       sidebarPanel(
         dateRangeInput("select_date", label = "Choose date range:")
@@ -71,7 +79,7 @@ ui <- navbarPage(
       ),
       column(3,
         "George Washington",
-        fluidRow(plotlyOutput("donut")),
+        fixedRow(height=200, plotlyOutput("donut")),
         fluidRow(tableOutput("patientsummary"))
       )
     )
@@ -82,6 +90,7 @@ ui <- navbarPage(
 server <- function(input, output) {
   
   output$appt_hist <- renderDataTable({
+    
       tibble(
         `Appointment ID` = 1:10,
         `Date` = as_datetime(c(
@@ -98,7 +107,7 @@ server <- function(input, output) {
         ), tz="US/Eastern"),
         `No-Show or Late Cancel` = c(F,F,F,T,F,F,F,F,F,F)
       )
-  })
+  }, rownames = F)
 
 cal2 <-
   tibble(
@@ -127,9 +136,6 @@ cal2 <-
   )
 
 times2 <-
-  # REACTIVE DATE RANGE --------------------
-# cal2 %>%
-# filter(start >= input$select_date)
 ggplot(cal2, aes(x = x_i, y = start_int, xmin = x_i, xmax = x_f, ymin = start_int,
                  ymax = end_int, fill = Probability, label = Patient)) +
   geom_rect() +
@@ -175,18 +181,39 @@ ggplot(cal2, aes(x = x_i, y = start_int, xmin = x_i, xmax = x_f, ymin = start_in
       layout(
         showlegend = F,
         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-        yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)
+        yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+        height = 200
       ) 
   })
   
   output$patientsummary <- renderTable({
     
     tibble(
-      a = 1:10,
-      b = 2*a
+      ` ` = c(
+        "Patient ID",
+        "Strikes",
+        "Historic NSLC Rate",
+        "Chronic Ailments",
+        "Age",
+        "Gender"
+      ),
+      `  ` = c(
+        "1322018",
+        "1",
+        "0.5",
+        "Diabetes",
+        "287",
+        "Male"
+      )
     )
     
   })
+    
+  runjs('    
+    $(document).ready(function() {
+        $("#donut").css("height","200px");
+    })
+  ')
   
 }
 
